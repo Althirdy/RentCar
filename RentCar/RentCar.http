@@ -1,0 +1,226 @@
+@RentCar_HostAddress = http://localhost:5074
+@JsonContentType = application/json
+
+### Health / OpenAPI
+GET {{RentCar_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+### Cars - list seeded cars
+GET {{RentCar_HostAddress}}/api/cars
+Accept: application/json
+
+### Cars - get seeded car by id
+GET {{RentCar_HostAddress}}/api/cars/1
+Accept: application/json
+
+### Cars - get missing car returns 404
+GET {{RentCar_HostAddress}}/api/cars/999999
+Accept: application/json
+
+### Cars - create smoke-test car
+# @name createCar
+POST {{RentCar_HostAddress}}/api/cars
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "maker": "Mazda",
+  "model": "CX-5 Smoke Test",
+  "year": 2024,
+  "imageUrl": "https://placehold.co/600x400?text=Mazda+CX-5",
+  "pricePerDay": 1800.00,
+  "status": "Active",
+  "fuelType": "Gasoline",
+  "transmissionType": "Automatic",
+  "seats": 5
+}
+
+### Cars - update smoke-test car
+PUT {{RentCar_HostAddress}}/api/cars/{{createCar.response.body.$.id}}
+Content-Type: {{JsonContentType}}
+
+{
+  "maker": "Mazda",
+  "model": "CX-5 Smoke Test Updated",
+  "year": 2024,
+  "imageUrl": "https://placehold.co/600x400?text=Mazda+CX-5+Updated",
+  "pricePerDay": 1900.00,
+  "status": "Active",
+  "fuelType": "Gasoline",
+  "transmissionType": "Automatic",
+  "seats": 5
+}
+
+### Users - list seeded users, response must not include password
+GET {{RentCar_HostAddress}}/api/users
+Accept: application/json
+
+### Users - get seeded user by id
+GET {{RentCar_HostAddress}}/api/users/1
+Accept: application/json
+
+### Users - create smoke-test renter
+# @name createUser
+POST {{RentCar_HostAddress}}/api/users
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "email": "smoke.renter@example.com",
+  "contactNumber": "+639171111111",
+  "firstName": "Smoke",
+  "middleName": "",
+  "lastName": "Renter",
+  "password": "Renter@123"
+}
+
+### Users - duplicate email returns 409
+POST {{RentCar_HostAddress}}/api/users
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "email": "smoke.renter@example.com",
+  "contactNumber": "+639171111111",
+  "firstName": "Duplicate",
+  "middleName": "",
+  "lastName": "Renter",
+  "password": "Renter@123"
+}
+
+### Users - update smoke-test renter, role must remain server-controlled
+PUT {{RentCar_HostAddress}}/api/users/{{createUser.response.body.$.id}}
+Content-Type: {{JsonContentType}}
+
+{
+  "email": "smoke.renter.updated@example.com",
+  "contactNumber": "+639172222222",
+  "firstName": "Smoke",
+  "middleName": "Updated",
+  "lastName": "Renter",
+  "password": "Updated@123"
+}
+
+### Bookings - create booking for smoke car/user
+# @name createSmokeCarBooking
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": {{createCar.response.body.$.id}},
+  "userId": {{createUser.response.body.$.id}},
+  "startDate": "2030-09-01T00:00:00Z",
+  "endDate": "2030-09-03T00:00:00Z"
+}
+
+### Cars - deleting booked smoke-test car returns 409
+DELETE {{RentCar_HostAddress}}/api/cars/{{createCar.response.body.$.id}}
+
+### Users - deleting booked smoke-test user returns 409
+DELETE {{RentCar_HostAddress}}/api/users/{{createUser.response.body.$.id}}
+
+### Cleanup - delete smoke car/user booking before final cleanup
+DELETE {{RentCar_HostAddress}}/api/bookings/{{createSmokeCarBooking.response.body.$.id}}
+
+### Bookings - list bookings
+GET {{RentCar_HostAddress}}/api/bookings
+Accept: application/json
+
+### Bookings - create valid booking using seeded car/user
+# @name createBooking
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2030-06-01T00:00:00Z",
+  "endDate": "2030-06-04T00:00:00Z"
+}
+
+### Bookings - overlapping booking returns 409
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2030-06-02T00:00:00Z",
+  "endDate": "2030-06-03T00:00:00Z"
+}
+
+### Bookings - invalid car returns 404
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 999999,
+  "userId": 2,
+  "startDate": "2030-07-01T00:00:00Z",
+  "endDate": "2030-07-03T00:00:00Z"
+}
+
+### Bookings - invalid date range returns 400
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2030-08-05T00:00:00Z",
+  "endDate": "2030-08-05T00:00:00Z"
+}
+
+### Bookings - past start date returns 400
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2000-01-01T00:00:00Z",
+  "endDate": "2000-01-03T00:00:00Z"
+}
+
+### Bookings - cancel smoke-test booking
+PUT {{RentCar_HostAddress}}/api/bookings/{{createBooking.response.body.$.id}}
+Content-Type: {{JsonContentType}}
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2030-06-01T00:00:00Z",
+  "endDate": "2030-06-04T00:00:00Z",
+  "status": "Cancelled"
+}
+
+### Bookings - same dates allowed after cancellation
+# @name createBookingAfterCancellation
+POST {{RentCar_HostAddress}}/api/bookings
+Content-Type: {{JsonContentType}}
+Accept: application/json
+
+{
+  "carId": 1,
+  "userId": 2,
+  "startDate": "2030-06-01T00:00:00Z",
+  "endDate": "2030-06-04T00:00:00Z"
+}
+
+### Cleanup - delete smoke-test booking if needed
+DELETE {{RentCar_HostAddress}}/api/bookings/{{createBooking.response.body.$.id}}
+
+### Cleanup - delete booking created after cancellation
+DELETE {{RentCar_HostAddress}}/api/bookings/{{createBookingAfterCancellation.response.body.$.id}}
+
+### Cleanup - delete smoke-test car
+DELETE {{RentCar_HostAddress}}/api/cars/{{createCar.response.body.$.id}}
+
+### Cleanup - delete smoke-test user
+DELETE {{RentCar_HostAddress}}/api/users/{{createUser.response.body.$.id}}
