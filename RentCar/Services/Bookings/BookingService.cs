@@ -14,7 +14,29 @@ namespace RentCar.Services.Bookings
             return await context.Bookings
                 .AsNoTracking()
                 .OrderByDescending(booking => booking.CreatedAt)
-                .Select(booking => ToDto(booking))
+                .Select(booking => new BookingDto(
+                    booking.Id,
+                    booking.CarId,
+                    booking.UserId,
+                    new BookingRenterDto(
+                        booking.User.Id,
+                        booking.User.FirstName,
+                        booking.User.MiddleName,
+                        booking.User.LastName,
+                        booking.User.Email,
+                        booking.User.ContactNumber),
+                    new BookingCarDto(
+                        booking.Car.Id,
+                        booking.Car.Maker,
+                        booking.Car.Model,
+                        booking.Car.Year,
+                        booking.Car.ImageUrl,
+                        booking.Car.PricePerDay),
+                    booking.StartDate,
+                    booking.EndDate,
+                    booking.TotalPrice,
+                    booking.Status,
+                    booking.CreatedAt))
                 .ToListAsync(cancellationToken);
         }
 
@@ -23,7 +45,29 @@ namespace RentCar.Services.Bookings
             return await context.Bookings
                 .AsNoTracking()
                 .Where(booking => booking.Id == id)
-                .Select(booking => ToDto(booking))
+                .Select(booking => new BookingDto(
+                    booking.Id,
+                    booking.CarId,
+                    booking.UserId,
+                    new BookingRenterDto(
+                        booking.User.Id,
+                        booking.User.FirstName,
+                        booking.User.MiddleName,
+                        booking.User.LastName,
+                        booking.User.Email,
+                        booking.User.ContactNumber),
+                    new BookingCarDto(
+                        booking.Car.Id,
+                        booking.Car.Maker,
+                        booking.Car.Model,
+                        booking.Car.Year,
+                        booking.Car.ImageUrl,
+                        booking.Car.PricePerDay),
+                    booking.StartDate,
+                    booking.EndDate,
+                    booking.TotalPrice,
+                    booking.Status,
+                    booking.CreatedAt))
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -76,7 +120,8 @@ namespace RentCar.Services.Bookings
             await context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return ServiceResult<BookingDto>.Success(ToDto(booking));
+            var createdBooking = await GetByIdAsync(booking.Id, cancellationToken);
+            return ServiceResult<BookingDto>.Success(createdBooking!);
         }
 
         public async Task<ServiceResult> UpdateAsync(int id, UpdateBookingRequest request, CancellationToken cancellationToken)
@@ -190,19 +235,6 @@ namespace RentCar.Services.Bookings
         {
             var rentalDays = Math.Max(1, (int)Math.Ceiling((endDate - startDate).TotalDays));
             return pricePerDay * rentalDays;
-        }
-
-        private static BookingDto ToDto(Booking booking)
-        {
-            return new BookingDto(
-                booking.Id,
-                booking.CarId,
-                booking.UserId,
-                booking.StartDate,
-                booking.EndDate,
-                booking.TotalPrice,
-                booking.Status,
-                booking.CreatedAt);
         }
     }
 }

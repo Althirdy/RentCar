@@ -6,6 +6,7 @@
         {
             UserSeeder.Seed(context);
             CarSeeder.Seed(context);
+            BookingSeeder.Seed(context);
         }
     }
 }

@@ -14,7 +14,21 @@ namespace RentCar.Services.Users
                 .AsNoTracking()
                 .OrderBy(user => user.LastName)
                 .ThenBy(user => user.FirstName)
-                .Select(user => ToDto(user))
+                .Select(user => new UserDto(
+                    user.Id,
+                    user.Email,
+                    user.ContactNumber,
+                    user.FirstName,
+                    user.MiddleName,
+                    user.LastName,
+                    user.Role,
+                    user.CreatedAt,
+                    user.Bookings.Count(),
+                    user.Bookings.Count(booking =>
+                        booking.Status == BookingStatus.Pending ||
+                        booking.Status == BookingStatus.Confirmed),
+                    user.Bookings.Count(booking => booking.Status == BookingStatus.Pending),
+                    user.Bookings.Count(booking => booking.Status == BookingStatus.Confirmed)))
                 .ToListAsync(cancellationToken);
         }
 
@@ -23,7 +37,21 @@ namespace RentCar.Services.Users
             return await context.Users
                 .AsNoTracking()
                 .Where(user => user.Id == id)
-                .Select(user => ToDto(user))
+                .Select(user => new UserDto(
+                    user.Id,
+                    user.Email,
+                    user.ContactNumber,
+                    user.FirstName,
+                    user.MiddleName,
+                    user.LastName,
+                    user.Role,
+                    user.CreatedAt,
+                    user.Bookings.Count(),
+                    user.Bookings.Count(booking =>
+                        booking.Status == BookingStatus.Pending ||
+                        booking.Status == BookingStatus.Confirmed),
+                    user.Bookings.Count(booking => booking.Status == BookingStatus.Pending),
+                    user.Bookings.Count(booking => booking.Status == BookingStatus.Confirmed)))
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
@@ -149,7 +177,13 @@ namespace RentCar.Services.Users
                 user.MiddleName,
                 user.LastName,
                 user.Role,
-                user.CreatedAt);
+                user.CreatedAt,
+                user.Bookings.Count(),
+                user.Bookings.Count(booking =>
+                    booking.Status == BookingStatus.Pending ||
+                    booking.Status == BookingStatus.Confirmed),
+                user.Bookings.Count(booking => booking.Status == BookingStatus.Pending),
+                user.Bookings.Count(booking => booking.Status == BookingStatus.Confirmed));
         }
     }
 }

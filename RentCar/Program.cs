@@ -52,10 +52,12 @@ app.UseCors(NextJsCorsPolicy);
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok());
 
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate();
     DatabaseSeeder.Seed(context);
 }
 

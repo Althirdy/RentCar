@@ -10,5 +10,9 @@ namespace RentCar.DTOs.Users
         string MiddleName,
         string LastName,
         RoleType Role,
-        DateTime CreatedAt);
+        DateTime CreatedAt,
+        int BookingCount,
+        int ActiveBookingCount,
+        int PendingBookingCount,
+        int ConfirmedBookingCount);
 }

@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+
+WORKDIR /src/RentCar
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY RentCar.csproj ./
+RUN dotnet restore
+
+COPY . ./
+
+EXPOSE 5074
+
+CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5074"]
